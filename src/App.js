@@ -111,7 +111,7 @@ class Film extends Component {
             </div>)
         return (
             <>
-                <h2>Films</h2>
+                <h2>Test film</h2>
                 {card}
             </>
         )
