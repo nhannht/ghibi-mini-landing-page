@@ -1,153 +1,179 @@
 import './App.css';
-import {Component} from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    Link
-} from "react-router-dom";
-import {Button, Modal} from "react-bootstrap";
+
+import {Component} from "react";
+import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
+import {Button, Card, Col, Container, Image, ListGroupItem, Modal, Nav, Navbar, Popover, Row} from "react-bootstrap";
+import * as PropTypes from "prop-types";
+import {Film} from "./Components/Film";
+import {CardFilm} from "./Components/CardFilm";
+
+// import mamma from './mamma.png';
+
+class PeopleModal extends Component {
+
+    render() {
+        return (
+            <Modal show={this.props.show} onHide={this.props.onHide} fullscreen={"sm-down"}>
+                <Modal.Header closeButton>
+                    <Modal.Title>{this.props.dataForModal.name}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{this.props.dataForModal.classification}</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={this.props.onHide}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        );
+    }
+}
+
+PeopleModal.propTypes = {
+    show: PropTypes.any,
+    onHide: PropTypes.func,
+    dataForModal: PropTypes.any
+};
 
 class People extends Component {
     constructor(props) {
         super(props);
+
         this.state = {
             people: [],
+            peopleExtractFromSearch: [],
+            query: "",
+            dataForModal : [],
+
+            searchState: false,
             modalState: false,
-            dataForModal: {
-                name: "",
-                gender: "",
-            }
+
         }
     }
 
     componentDidMount() {
-        const URL = "https://ghibliapi.herokuapp.com/people";
-        fetch(URL).then(res => res.json()).then(json => this.setState({
-            people: json
-        })).catch(error => console.log('We have some error here ', error));
+        this.initFetchDataPeopleFromApi().then(result => {
+            this.setState({
+                people: result
+            });
+        })
+    }
 
+    handleSearch = async (query, data) => {
+        const result = data.filter(person => {
+            return (person.name.search(query) !== -1)
+        })
+        return result;
+    }
+
+    initFetchDataPeopleFromApi = async () => {
+        const URL = "https://ghibliapi.herokuapp.com/people";
+        const res = await fetch(URL);
+        if (res.status !== 200) throw new Error('Error when fetch');
+        return res.json();
     }
 
     handleClose = () => this.setState({
         modalState: false
     });
-    handleShow = (name,gender) => this.setState({
-        modalState: true,
-        dataForModal: {
-            name: name,
-            gender: gender
-        }
-    })
+    handleShow = (url) => {
+        fetch(url).then(res => res.json())
+            .then(result => [result.name,result.classification]).then(([name,classification]) => this.setState({
+            modalState: true,
+            dataForModal: {
+                name: name,
+                classification: classification
+            }
+        }))
+    }
+
+    handleFormSubmit = (event) => {
+        event.preventDefault();
+        this.handleSearch(event.target.searchForm.value, this.state.people).then(result => {
+            this.setState({
+                peopleExtractFromSearch: result
+            })
+        });
+        this.setState({
+            query: event.target.searchForm.value,
+            searchState: true
+        })
+
+    }
 
     render() {
-        const card = this.state.people.map(element =>
-            <div className={"card"}>
-                <div className={"card-title"}>{element.name}</div>
-                <div className={"card-body"}>
-                    <ul>
-                        <Button variant="primary" onClick={event => this.handleShow(element.name,element.gender)}>
-                            See more
-                        </Button>
-
-                        <li> Age {element.age}</li>
-                        <li> Name: {element.name}</li>
-                        <li>Films: {element.films}</li>
-                    </ul>
-                </div>
-            </div>
+        let people = (!this.state.searchState) ? this.state.people : this.state.peopleExtractFromSearch;
+        const card = people.map(person =>
+            <Col>
+                <Card key={person.id}>
+                    <Card.Header className={"card-title"}>{person.name}</Card.Header>
+                    <ListGroupItem action>Name: {person.name}</ListGroupItem>
+                    <ListGroupItem action> Age {person.age}</ListGroupItem>
+                    <CardFilm films={person.films}/>
+                    <ListGroupItem action>Gender: {person.gender}</ListGroupItem>
+                    <ListGroupItem action>Eye color: {person.eye_color}</ListGroupItem>
+                    <ListGroupItem action>Hair color: {person.hair_color}</ListGroupItem>
+                    <ListGroupItem action onClick={event => this.handleShow(person.species)}>
+                        Click here to see more about species
+                    </ListGroupItem>
+                </Card>
+            </Col>
         )
         return (
-            <div className={"container"}>
-                <h2>People</h2>
-                {card}
-                <Modal show={this.state.modalState} onHide={this.handleClose} fullscreen={'sm-down'}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>{this.state.dataForModal.name}</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>{this.state.dataForModal.gender}</Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="primary" onClick={this.handleClose}>
-                            Close
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
-            </div>
+            <Container>
+                <nav className={" navbar"}>
+                    <h4 className={"text-center"}>People</h4>
+                    <form className={"form-inline"} onSubmit={this.handleFormSubmit}>
+                        <input className={"form-control"} name={"searchForm"} type={"search"}
+                               placeholder={"Search by name"}/>
+                        <Button type={"submit"}>Submit</Button>
+                    </form>
 
+                </nav>
+                <Row md={3} xs={1}>{card}</Row>
+                <PeopleModal show={this.state.modalState} onHide={this.handleClose}
+                             dataForModal={this.state.dataForModal}/>
+            </Container>
         );
-    }
-}
-
-class Film extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            films: [],
-        }
-
-    }
-
-    componentDidMount() {
-        const URL = "https://ghibliapi.herokuapp.com/films";
-        fetch(URL).then(res => res.json()).then(json => this.setState({
-            films: json
-        })).catch(e => console.log(e));
-    }
-
-    render() {
-        const card = this.state.films.map(element =>
-            <div className={"card"}>
-                <div className={"card-title"}>{element.title}</div>
-                <div className={"card-body"}>
-                    <ul>
-                        <li>Description: {element.description}</li>
-                        <li>Origin title: {element.origin_title} </li>
-                        <li>Release date: {element.release_date}</li>
-                        <li>Director: {element.director}</li>
-                        <li>Producer: {element.producer}</li>
-                    </ul>
-                </div>
-            </div>)
-        return (
-            <>
-                <h2>Test film</h2>
-                {card}
-            </>
-        )
     }
 }
 
 function Panel() {
     return (
-        <Router>
-            <ul className={"nav  justify-content-evenly"}>
-                <li className={"nav-item"}>
-                    <Link to={"/film"}>Film</Link>
-                </li>
-                <li className={"nav-item"}><Link to={"/people"}>
-                    People
-                </Link></li>
-            </ul>
-            <Switch>
-                <Route path={"/film"}>
-                    <Film/>
-                </Route>
-                <Route path={"/people"}>
-                    <People/>
-                </Route>
-            </Switch>
-        </Router>
+        <Navbar className={'bg-light'}>
+            <Container>
+                <Navbar.Brand>
+                    <Image src='./ghibli-cat.jpg' className={'w-25 h-25 '} roundedCircle={true} alt={"hello"}/>
+                </Navbar.Brand>
+                <Nav>
+                    <Nav.Link href={"/film"}>
+                        Film
+                    </Nav.Link>
+                    <Nav.Link href={"/people"}>
+                        People
+                    </Nav.Link>
+                </Nav>
+            </Container>
+        </Navbar>
     )
 }
 
 
 function App() {
     return (
-        <div className="container border border-danger">
+        <Container>
             <Panel/>
-
-        </div>
+            <Router>
+                <Switch>
+                    <Route path={"/film"}>
+                        <Film/>
+                    </Route>
+                    <Route path={"/people"}>
+                        <People/>
+                    </Route>
+                </Switch>
+            </Router>
+        </Container>
     );
 }
 
