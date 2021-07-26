@@ -20,11 +20,11 @@ export class Film extends Component {
 
     render() {
         const card = this.state.films.map(element =>
-            <div className={"card"}>
+            <div className={"card"} key={element.id}>
                 <div className={"card-title"}>{element.title}</div>
                 <div className={"card-body"}>
                     <ListGroup>
-                        <ListGroupItem>Description: {element.description}</ListGroupItem>
+                        <ListGroupItem >Description: {element.description}</ListGroupItem>
                         <ListGroupItem>Origin title: {element.origin_title} </ListGroupItem>
                         <ListGroupItem>Release date: {element.release_date}</ListGroupItem>
                         <ListGroupItem>Director: {element.director}</ListGroupItem>
@@ -34,7 +34,7 @@ export class Film extends Component {
             </div>)
         return (
             <>
-                <h2>Test film</h2>
+                <h2>Film</h2>
                 {card}
             </>
         )

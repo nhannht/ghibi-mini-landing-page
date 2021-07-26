@@ -35,7 +35,7 @@ export class CardFilm extends Component {
             )
         };
         return (
-            <OverlayTrigger trigger={["hover","focus"]} delay={{show:0,hide:500}} overlay={popover()}>
+            <OverlayTrigger trigger={["hover","focus"]} delay={{show:250,hide:500}} overlay={popover()}>
                 <ListGroupItem action>{liTitle.length} films</ListGroupItem>
             </OverlayTrigger>
         )

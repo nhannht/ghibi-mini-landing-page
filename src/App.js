@@ -1,12 +1,26 @@
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 
-import {Component} from "react";
+import {Component, useEffect} from "react";
 import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
-import {Button, Card, Col, Container, Image, ListGroupItem, Modal, Nav, Navbar, Popover, Row} from "react-bootstrap";
+import {
+    Button,
+    Card,
+    Col,
+    Container,
+    Image,
+    ListGroupItem,
+    Modal,
+    Nav,
+    Navbar,
+    NavDropdown, NavItem, OverlayTrigger,
+    Popover,
+    Row, Tooltip
+} from "react-bootstrap";
 import * as PropTypes from "prop-types";
 import {Film} from "./Components/Film";
 import {CardFilm} from "./Components/CardFilm";
+import {AiFillQuestionCircle} from "react-icons/all";
 
 // import mamma from './mamma.png';
 
@@ -43,7 +57,7 @@ class People extends Component {
             people: [],
             peopleExtractFromSearch: [],
             query: "",
-            dataForModal : [],
+            dataForModal: [],
 
             searchState: false,
             modalState: false,
@@ -59,12 +73,6 @@ class People extends Component {
         })
     }
 
-    handleSearch = async (query, data) => {
-        const result = data.filter(person => {
-            return (person.name.search(query) !== -1)
-        })
-        return result;
-    }
 
     initFetchDataPeopleFromApi = async () => {
         const URL = "https://ghibliapi.herokuapp.com/people";
@@ -78,7 +86,7 @@ class People extends Component {
     });
     handleShow = (url) => {
         fetch(url).then(res => res.json())
-            .then(result => [result.name,result.classification]).then(([name,classification]) => this.setState({
+            .then(result => [result.name, result.classification]).then(([name, classification]) => this.setState({
             modalState: true,
             dataForModal: {
                 name: name,
@@ -87,19 +95,23 @@ class People extends Component {
         }))
     }
 
-    handleFormSubmit = (event) => {
-        event.preventDefault();
-        this.handleSearch(event.target.searchForm.value, this.state.people).then(result => {
+    searchFunction = async (query, data) => {
+        const result = data.filter(person => {
+            return (person.name.search(query) !== -1)
+        })
+        return result;
+    }
+
+    handleInputSearch = (event) => {
+        this.searchFunction(event.target.value, this.state.people).then(result => {
             this.setState({
+                searchState: true,
+                query: event.target.value,
                 peopleExtractFromSearch: result
             })
         });
-        this.setState({
-            query: event.target.searchForm.value,
-            searchState: true
-        })
-
     }
+
 
     render() {
         let people = (!this.state.searchState) ? this.state.people : this.state.peopleExtractFromSearch;
@@ -123,10 +135,9 @@ class People extends Component {
             <Container>
                 <nav className={" navbar"}>
                     <h4 className={"text-center"}>People</h4>
-                    <form className={"form-inline"} onSubmit={this.handleFormSubmit}>
+                    <form id={"search-bar"} className={"form-inline"} onSubmit={event => event.preventDefault()}>
                         <input className={"form-control"} name={"searchForm"} type={"search"}
-                               placeholder={"Search by name"}/>
-                        <Button type={"submit"}>Submit</Button>
+                               placeholder={"Search by name"} onChange={this.handleInputSearch}/>
                     </form>
 
                 </nav>
@@ -146,12 +157,16 @@ function Panel() {
                     <Image src='./ghibli-cat.jpg' className={'w-25 h-25 '} roundedCircle={true} alt={"hello"}/>
                 </Navbar.Brand>
                 <Nav>
-                    <Nav.Link href={"/film"}>
+                    <NavItem title={"People/Film"}>
+                        <Nav.Link href={"/People"} >
+                            People
+                        </Nav.Link>
+                    </NavItem>
+                    <NavItem>
+                        <Nav.Link href={"/film"}>
                         Film
                     </Nav.Link>
-                    <Nav.Link href={"/people"}>
-                        People
-                    </Nav.Link>
+                    </NavItem>
                 </Nav>
             </Container>
         </Navbar>
@@ -159,7 +174,39 @@ function Panel() {
 }
 
 
+class TooltipButton extends Component {
+
+    render() {
+        const renderTooltip = (props) => (
+            <Tooltip id="button-tooltip" {...props}>
+                This is a simple toy for fan of Ghibli studio , press "/" to enter search
+            </Tooltip>
+        );
+        return <OverlayTrigger
+            placement={"left"}
+            delay={{show: 250, hide: 250}}
+            overlay={renderTooltip}>
+            <div id={"help-button"}><AiFillQuestionCircle/></div>
+        </OverlayTrigger>;
+    }
+}
+
+TooltipButton.propTypes = {overlay: PropTypes.func};
+
 function App() {
+
+    useEffect(() => {
+        document.addEventListener("keypress", (e) => {
+            if (e.key === "/") {
+                e.preventDefault();
+                let searchBar = document.getElementById("search-bar");
+                searchBar.scrollIntoView();
+                searchBar.querySelector("input").focus();
+            }
+        })
+
+    })
+
     return (
         <Container>
             <Panel/>
@@ -168,11 +215,12 @@ function App() {
                     <Route path={"/film"}>
                         <Film/>
                     </Route>
-                    <Route path={"/people"}>
+                    <Route path={["/people","/"]}>
                         <People/>
                     </Route>
                 </Switch>
             </Router>
+            <TooltipButton/>
         </Container>
     );
 }
