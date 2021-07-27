@@ -150,10 +150,10 @@ class People extends Component {
 
 function Panel() {
     return (
-        <Navbar className={'bg-light'}>
+        <Navbar >
             <Container>
                 <Navbar.Brand>
-                    <Image src='./ghibli-cat.jpg' className={'w-25 h-25 '} roundedCircle={true} alt={"hello"}/>
+                    <Image src='./ghiblimask.png' className={'w-25 h-25 '} roundedCircle={true} alt={"hello"}/>
                 </Navbar.Brand>
                 <Nav>
                     <NavItem title={"People/Film"}>
