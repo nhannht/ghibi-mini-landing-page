@@ -20,7 +20,7 @@ export class Film extends Component {
 
     render() {
         const card = this.state.films.map(element =>
-            <div className={"card"} key={element.id}>
+            <div role={"card"} className={"card"} key={element.id}>
                 <div className={"card-title"}>{element.title}</div>
                 <div className={"card-body"}>
                     <ListGroup>

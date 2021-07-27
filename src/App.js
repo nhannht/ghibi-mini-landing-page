@@ -13,14 +13,13 @@ import {
     Modal,
     Nav,
     Navbar,
-    NavDropdown, NavItem, OverlayTrigger,
-    Popover,
+    NavItem, OverlayTrigger,
     Row, Tooltip
 } from "react-bootstrap";
 import * as PropTypes from "prop-types";
 import {Film} from "./Components/Film";
 import {CardFilm} from "./Components/CardFilm";
-import {AiFillQuestionCircle} from "react-icons/all";
+import {AiFillQuestionCircle} from "react-icons/ai";
 
 // import mamma from './mamma.png';
 
@@ -117,7 +116,7 @@ class People extends Component {
         let people = (!this.state.searchState) ? this.state.people : this.state.peopleExtractFromSearch;
         const card = people.map(person =>
             <Col>
-                <Card key={person.id}>
+                <Card role={"card"} key={person.id}>
                     <Card.Header className={"card-title"}>{person.name}</Card.Header>
                     <ListGroupItem action>Name: {person.name}</ListGroupItem>
                     <ListGroupItem action> Age {person.age}</ListGroupItem>
@@ -158,12 +157,12 @@ function Panel() {
                 </Navbar.Brand>
                 <Nav>
                     <NavItem title={"People/Film"}>
-                        <Nav.Link href={"/People"} >
+                        <Nav.Link href={"/People"} role={"people-link"}>
                             People
                         </Nav.Link>
                     </NavItem>
                     <NavItem>
-                        <Nav.Link href={"/film"}>
+                        <Nav.Link href={"/film"} role={"film-link"}>
                         Film
                     </Nav.Link>
                     </NavItem>
